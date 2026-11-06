@@ -9,7 +9,7 @@
   <Project>https://github.com/GeorgeAL78/pia-iptv</Project>
   <Overview>PIA VPN gateway for IPTV, with a kill switch.
 
-Other containers (such as m3u-editor) join this container's network and reach the internet only through Private Internet Access. If the tunnel drops, their traffic is blocked instead of leaking your real IP.
+Other containers (such as m3u-editor) join this container's network and reach the internet only through Private Internet Access. If the tunnel drops, their traffic stops instead of falling back to your regular connection.
 
 • WireGuard (default) or OpenVPN, any PIA region
 • Kill switch: IPv4 locked to the tunnel, IPv6 blocked

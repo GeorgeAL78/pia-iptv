@@ -78,8 +78,8 @@ In m3u-editor:
 
 1. **Playlists → New playlist**, type **Xtream**. Enter your provider's server URL, username and
    password, choose what to import (live, movies, series, guide), and save.
-2. **Enable proxying** for the playlist (the *Proxy* toggle). Without it, players are given the
-   provider's direct URLs and stream outside the VPN.
+2. **Enable proxying** for the playlist (the *Proxy* toggle). Without it, players connect to the
+   source directly instead of through the VPN.
 3. **Groups**: select the groups you want, then *Enable Group Channels*. Imported channels start
    disabled.
 4. The playlist's **Xtream API** tab shows the server, username and password for your players.
@@ -106,10 +106,8 @@ in a browser, try the playlist's `m3u8` output or a native player.
 
 ## Choosing a region
 
-Pick a PIA region close to you or to your IPTV provider's servers; distance adds latency and can
-cause buffering on 4K. PIA's *Streaming Optimized* regions are meant for services that block VPNs
-(Netflix and similar). IPTV providers rarely do, so a regular region is usually best. PIA's
-virtual locations (IP in one country, server in another) add latency.
+Pick a PIA region close to you or to the servers your proxy connects to. Distance adds latency,
+which can cause buffering at high bitrates such as 4K.
 
 ## Notes
 

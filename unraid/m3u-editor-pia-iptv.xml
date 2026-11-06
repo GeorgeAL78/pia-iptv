@@ -15,7 +15,7 @@ IMPORTANT
 • Install and start pia-iptv first. Its name must be exactly "pia-iptv".
 • Network Type stays "None"; the network comes from --net=container:pia-iptv in Extra Parameters.
 • The port is published on pia-iptv, not here.
-• In m3u-editor, enable stream proxying for your playlist, or TiviMate plays streams directly from the provider, outside the VPN.
+• In m3u-editor, enable stream proxying for your playlist, otherwise players connect to the source directly instead of through the VPN.
 • If pia-iptv is updated or recreated, update or restart this container too. Add the "autoheal" container (willfarrell/autoheal) to restart it automatically.</Overview>
   <Category>MediaServer:Video: Tools:</Category>
   <WebUI>http://[IP]:36400/</WebUI>

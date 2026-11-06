@@ -2,8 +2,8 @@
 #
 # m3u-editor shares pia-iptv's network, so playlist/EPG syncs and every proxied
 # stream leave through PIA; if the tunnel drops, the kill switch blocks them.
-# In m3u-editor, enable stream proxying on the playlist, otherwise players are given
-# the provider's direct URLs and stream outside the tunnel.
+# In m3u-editor, enable stream proxying on the playlist, otherwise players connect
+# to the source directly instead of through the tunnel.
 #
 # cp .env.example .env, fill it in, then: docker compose up -d
 # Web UI + Xtream server: http://<host>:36400
