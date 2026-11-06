@@ -43,6 +43,8 @@ services:
       TZ: ${TZ:-Etc/UTC}
       APP_URL: ${APP_URL}
       APP_PORT: "36400"
+      # true = no web login: anyone allowed by LAN_NETWORK gets admin. Xtream logins are unaffected.
+      AUTO_LOGIN: ${M3U_AUTO_LOGIN:-false}
       ENABLE_POSTGRES: "true"
       PG_DATABASE: m3ue
       PG_USER: m3ue
