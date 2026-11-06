@@ -24,7 +24,7 @@ IMPORTANT
   <ExtraParams>--net=container:pia-iptv --restart=unless-stopped --label autoheal=true --health-cmd "grep -q eth0 /proc/net/dev &amp;&amp; curl -fs http://127.0.0.1:36400/up &gt; /dev/null" --health-interval 30s --health-retries 3 --health-start-period 90s</ExtraParams>
   <Requires>The pia-iptv container, running.</Requires>
 
-  <Config Name="App URL" Target="APP_URL" Default="http://192.168.1.200:36400" Mode="" Description="How your browser and TiviMate reach m3u-editor." Type="Variable" Display="always" Required="true" Mask="false">http://192.168.1.200:36400</Config>
+  <Config Name="App URL" Target="APP_URL" Default="" Mode="" Description="How your browser and players reach m3u-editor: http://YOUR-UNRAID-IP:36400 (e.g. http://192.168.0.10:36400)." Type="Variable" Display="always" Required="true" Mask="false"></Config>
   <Config Name="Config" Target="/var/www/config" Default="/mnt/user/appdata/m3u-editor/config" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/m3u-editor/config</Config>
   <Config Name="Postgres data" Target="/var/lib/postgresql/data" Default="/mnt/user/appdata/m3u-editor/pgdata" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/m3u-editor/pgdata</Config>
   <Config Name="Uploads" Target="/var/www/html/storage/app/public" Default="/mnt/user/appdata/m3u-editor/storage" Mode="rw" Description="Logos and images you upload." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/m3u-editor/storage</Config>
@@ -33,7 +33,6 @@ IMPORTANT
   <Config Name="Proxy token" Target="M3U_PROXY_TOKEN" Default="" Mode="" Description="Any long random string (e.g. openssl rand -hex 32)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="Redis password" Target="REDIS_PASSWORD" Default="" Mode="" Description="Same value as Proxy token." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="Skip web login" Target="AUTO_LOGIN" Default="false|true" Mode="" Description="true = open the web UI without signing in. Anyone on the LAN ranges allowed by pia-iptv gets full admin, including your provider login. TiviMate's Xtream login is not affected." Type="Variable" Display="always" Required="false" Mask="false">false</Config>
-  <Config Name="Timezone" Target="TZ" Default="America/Los_Angeles" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">America/Los_Angeles</Config>
   <Config Name="APP_PORT" Target="APP_PORT" Default="36400" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">36400</Config>
   <Config Name="ENABLE_POSTGRES" Target="ENABLE_POSTGRES" Default="true|false" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">true</Config>
   <Config Name="PG_DATABASE" Target="PG_DATABASE" Default="m3ue" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">m3ue</Config>
