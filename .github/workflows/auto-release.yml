@@ -1,0 +1,87 @@
+name: Auto release (m3u-editor updates)
+
+# When m3u-editor publishes a new stable release, release a new pia-iptv version on it:
+# bump the pinned base in the Dockerfile, tag the next patch version, publish the image
+# (stable tags and :latest) and create a GitHub Release. Pre-release, dev and
+# experimental m3u-editor builds are ignored.
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only print what would happen"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write   # commit the bump, push the tag, create the release
+  actions: write    # start the publish workflow
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check m3u-editor and release if newer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run && '1' || '' }}
+        run: |
+          set -euo pipefail
+
+          current=$(sed -n 's/^ARG M3U_EDITOR_TAG=//p' Dockerfile)
+          # releases/latest returns the newest release that is neither a draft nor a pre-release.
+          upstream=$(gh api repos/m3ue/m3u-editor/releases/latest --jq .tag_name)
+          upstream=${upstream#v}
+          echo "Pinned m3u-editor: $current, latest stable: $upstream"
+
+          if ! [[ "$upstream" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Unexpected version '$upstream' - not releasing"; exit 1
+          fi
+          if [ "$upstream" = "$current" ]; then
+            echo "Up to date"; exit 0
+          fi
+          if [ "$(printf '%s\n%s\n' "$current" "$upstream" | sort -V | tail -n1)" != "$upstream" ]; then
+            echo "Latest stable is older than the pin - nothing to do"; exit 0
+          fi
+
+          # Only release once m3u-editor's image for that version exists for both platforms.
+          if ! curl -fsS "https://hub.docker.com/v2/repositories/sparkison/m3u-editor/tags/$upstream" \
+               | jq -e '[.images[].architecture] | (index("amd64") != null) and (index("arm64") != null)' > /dev/null; then
+            echo "sparkison/m3u-editor:$upstream is not on Docker Hub for amd64 and arm64 yet - next run will retry"
+            exit 0
+          fi
+
+          last=$(git tag -l 'v[0-9]*' --sort=-v:refname | head -n1)
+          last=${last#v}
+          IFS=. read -r major minor patch <<< "$last"
+          next="v$major.$minor.$((patch + 1))"
+          echo "Releasing pia-iptv ${next#v} on m3u-editor $upstream (previous: $last)"
+
+          if [ -n "$DRY_RUN" ]; then
+            echo "Dry run - stopping here"; exit 0
+          fi
+
+          sed -i "s/^ARG M3U_EDITOR_TAG=.*/ARG M3U_EDITOR_TAG=$upstream/" Dockerfile
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "m3u-editor $upstream"
+          git tag -a "$next" -m "pia-iptv ${next#v}: m3u-editor $upstream"
+          git push origin HEAD:main "$next"
+
+          # A tag pushed with GITHUB_TOKEN does not trigger other workflows, so start the
+          # publish explicitly, on the new tag.
+          gh workflow run docker-publish.yml --ref "$next"
+
+          gh release create "$next" --latest --title "pia-iptv ${next#v}" --notes \
+            "Built on [m3u-editor $upstream](https://github.com/m3ue/m3u-editor/releases/tag/v$upstream). The VPN layer is unchanged.
+
+          Image: \`gjergjk/pia-iptv:${next#v}\` (also \`latest\`)."

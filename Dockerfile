@@ -1,12 +1,16 @@
 # pia-iptv: m3u-editor with a built-in PIA VPN tunnel and kill switch, in one container.
 # The VPN comes up first; m3u-editor then starts exactly as in its own image.
-ARG M3U_EDITOR_TAG=latest
+# Pinned m3u-editor release; .github/workflows/auto-release.yml bumps it when m3u-editor
+# publishes a new stable release, and releases a new pia-iptv version.
+ARG M3U_EDITOR_TAG=0.14.0
 FROM sparkison/m3u-editor:${M3U_EDITOR_TAG}
+ARG M3U_EDITOR_TAG
 
 LABEL org.opencontainers.image.title="pia-iptv" \
       org.opencontainers.image.description="m3u-editor with a built-in Private Internet Access VPN (WireGuard/OpenVPN) and kill switch" \
       org.opencontainers.image.source="https://github.com/GeorgeAL78/pia-iptv" \
-      org.opencontainers.image.licenses="GPL-3.0-or-later"
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      io.github.m3u-editor.version="${M3U_EDITOR_TAG}"
 
 RUN apk add --no-cache bind-tools iproute2 iptables iptables-legacy jq openvpn wireguard-tools && \
     mkdir -p /openvpn/nextgen && \

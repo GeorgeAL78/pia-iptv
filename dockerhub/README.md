@@ -118,8 +118,10 @@ which can cause buffering at high bitrates such as 4K.
 - **Logins:** each start logs in to PIA once, and PIA rate-limits logins per account. Avoid restart
   loops, especially if the account is shared with other containers.
 - **Throughput:** WireGuard is much lighter than OpenVPN. Use it for 4K.
-- **m3u-editor version:** each pia-iptv release is built on the m3u-editor release current at
-  the time.
+- **m3u-editor version:** each pia-iptv release is built on a specific m3u-editor release
+  (see the release notes and the `io.github.m3u-editor.version` image label). A scheduled
+  workflow checks every 6 hours and publishes a new pia-iptv version when m3u-editor publishes a
+  new stable release.
 
 ## License
 
