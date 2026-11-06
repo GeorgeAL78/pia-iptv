@@ -3,10 +3,9 @@
 A Private Internet Access (PIA) VPN gateway container with a kill switch. Other containers join
 its network and reach the internet only through PIA.
 
-It's built for IPTV: put an IPTV proxy such as [m3u-editor](https://github.com/m3ue/m3u-editor)
-behind it, and point your players (TiviMate, IPTV Smarters, VLC, Kodi, ...) at the proxy. Playlist
-and guide syncs and every proxied stream then go through PIA, and your provider never sees your
-home IP.
+It's made for IPTV proxies such as [m3u-editor](https://github.com/m3ue/m3u-editor). The proxy
+runs inside pia-iptv's network, so its playlist and guide syncs and the streams it relays use the
+VPN. Players connect to the proxy over your LAN.
 
 ```
 player ──LAN──▶ :36400 ─┐
