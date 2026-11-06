@@ -12,7 +12,7 @@
 # reasons behind those choices are documented in that repository.
 
 # shellcheck source=vpn-thresholds.sh
-. /app/vpn-thresholds.sh
+. /pia/vpn-thresholds.sh
 
 ts() { date +'%Y-%m-%d %H:%M:%S'; }
 log() { printf "[%s] [%s] %s\n" "$(ts)" "$1" "$2"; }
@@ -29,7 +29,7 @@ printf " =========================================\n\n"
 
 VPN_CLIENT=$(printf '%s' "${VPN_CLIENT:-wireguard}" | tr '[:upper:]' '[:lower:]')
 case "$VPN_CLIENT" in wireguard|openvpn) ;; *) die 1 "VPN_CLIENT must be wireguard or openvpn" ;; esac
-LAN_PORTS=${LAN_PORTS:-36400}
+LAN_PORTS=${LAN_PORTS:-${APP_PORT:-36400}${XTREAM_PORT:+,$XTREAM_PORT}}
 for p in $(echo "$LAN_PORTS" | tr ',' ' '); do
   case "$p" in *[!0-9]*|"") die 1 "LAN_PORTS entry '$p' is not a port number" ;; esac
 done
@@ -70,9 +70,9 @@ printf "[%s] [INFO] Refreshing PIA server list..." "$(ts)"
 tmp=$(mktemp)
 if curl -sSL --max-time 8 --retry 1 https://serverlist.piaservers.net/vpninfo/servers/v6 2>/dev/null | head -n 1 > "$tmp" &&
    jq -e '.regions | length > 0' "$tmp" >/dev/null 2>&1; then
-  cat "$tmp" > /app/data.json; printf "DOWNLOADED %s regions\n" "$(jq -r '.regions|length' /app/data.json)"
+  cat "$tmp" > /pia/data.json; printf "DOWNLOADED %s regions\n" "$(jq -r '.regions|length' /pia/data.json)"
 else
-  printf "UNREACHABLE - using the %s baked-in regions\n" "$(jq -r '.regions|length' /app/data.json 2>/dev/null)"
+  printf "UNREACHABLE - using the %s baked-in regions\n" "$(jq -r '.regions|length' /pia/data.json 2>/dev/null)"
 fi
 rm -f "$tmp"
 
@@ -86,7 +86,7 @@ region_match=$(jq -r --arg SERVER "$server" '
   [.regions[] | select((.name | normalize | contains($search)) or (.id | normalize | contains($search)))] as $fuzzy |
   (if ($exact_id|length) > 0 then $exact_id[0] elif ($exact_name|length) > 0 then $exact_name[0]
    elif ($fuzzy|length) > 0 then $fuzzy[0] else null end)
-  | if . then "\(.id)|\(.name)" else "|" end' /app/data.json 2>/dev/null)
+  | if . then "\(.id)|\(.name)" else "|" end' /pia/data.json 2>/dev/null)
 region_id=$(echo "$region_match" | cut -d'|' -f1)
 region_name=$(echo "$region_match" | cut -d'|' -f2)
 [ -n "$region_id" ] || die 1 "PIA_REGION '$PIA_REGION' not found in the PIA server list"
@@ -108,10 +108,10 @@ if [ "$VPN_CLIENT" = "wireguard" ]; then
   sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
   sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
 
-  regiondata=$(jq -e --arg RID "$region_id" '.regions[] | select(.id == $RID)' /app/data.json) || die 1 "No region data"
+  regiondata=$(jq -e --arg RID "$region_id" '.regions[] | select(.id == $RID)' /pia/data.json) || die 1 "No region data"
   WG_SERVERS=$(echo "$regiondata" | jq -r '.servers.wg[]? | "\(.ip) \(.cn)"')
   [ -n "$WG_SERVERS" ] || die 1 "Region '$region_name' has no WireGuard servers - try VPN_CLIENT=openvpn or another region"
-  wg_port=$(jq -r '.groups.wg[0].ports[0]' /app/data.json)
+  wg_port=$(jq -r '.groups.wg[0].ports[0]' /pia/data.json)
 
   # Register a fresh key, trying each server in the region (failover).
   wg_register() {
@@ -120,7 +120,7 @@ if [ "$VPN_CLIENT" = "wireguard" ]; then
     echo "$WG_SERVERS" | while read -r s_ip s_cn; do
       [ -z "$s_ip" ] && continue
       out=$(curl -s --connect-timeout 8 --max-time 20 -G --connect-to "$s_cn::$s_ip:" \
-        --cacert /app/ca.rsa.4096.crt --data-urlencode "pt=$piatoken" \
+        --cacert /pia/ca.rsa.4096.crt --data-urlencode "pt=$piatoken" \
         --data-urlencode "pubkey=$wg_pub" "https://$s_cn:$wg_port/addKey")
       if [ "$(echo "$out" | jq -r '.status' 2>/dev/null)" = "OK" ]; then
         printf '%s\n' "$out" > /tmp/.wg.json; printf '%s %s\n' "$s_ip" "$s_cn" > /tmp/.wg.srv; break
@@ -292,16 +292,10 @@ pub=$(curl -s --max-time 10 https://ipinfo.io/ip 2>/dev/null)
 log INFO "Tunnel up on $VPN_DEVICE - public IP ${pub:-unknown (lookup failed)}"
 touch /run/pia-iptv.ready
 
-shutdown() {
-  log INFO "Stopping"
-  if [ "$VPN_CLIENT" = "wireguard" ]; then wg-quick down pia > /dev/null 2>&1; else pkill -x openvpn; fi
-  exit 0
-}
-trap shutdown TERM INT
-
 ############################################
 # Monitor loop (same cadence and budget as pia-qbittorrent)
 ############################################
+monitor() {
 i=1; fail=0; state=up; down_samples=0; down_since=0
 while :; do
   sleep 1
@@ -326,7 +320,10 @@ while :; do
       else
         fail=$((fail + 1))
         if [ "$fail" -ge "$RECONNECT_MAX_FAILURES" ]; then
-          log ERROR "In-place reconnect failed ${fail}x - exiting for a full restart (fresh token). Needs a restart policy."
+          log ERROR "In-place reconnect failed ${fail}x - stopping the container for a full restart (fresh token). Needs a restart policy."
+          # In all-in-one mode PID 1 is the app's supervisor, not this script:
+          # stop it so the whole container exits and the restart policy starts it fresh.
+          [ "$$" != 1 ] && kill -TERM 1 2>/dev/null
           exit 5
         fi
         log WARNING "Reconnect attempt $fail failed - retrying in ${RECONNECT_RETRY_GAP}s"
@@ -335,5 +332,44 @@ while :; do
     fi
   fi
   i=$((i + 1))
-done &
+done
+}
+
+############################################
+# Hand over
+############################################
+if command -v start-container > /dev/null 2>&1; then
+  # All-in-one: m3u-editor runs in this container, behind the tunnel and kill switch.
+  # Its internal secrets are generated once and kept in its config volume.
+  secrets=/var/www/config/.pia-iptv-secrets
+  mkdir -p /var/www/config
+  if [ ! -s "$secrets" ]; then
+    umask 077
+    printf 'PIA_IPTV_PG_PASSWORD=%s\nPIA_IPTV_PROXY_TOKEN=%s\n' \
+      "$(head -c 24 /dev/urandom | od -An -tx1 | tr -d ' \n')" \
+      "$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')" > "$secrets"
+    umask 022
+    log INFO "Generated m3u-editor internal secrets in $secrets"
+  fi
+  # shellcheck disable=SC1090
+  . "$secrets"
+  export PG_PASSWORD="${PG_PASSWORD:-$PIA_IPTV_PG_PASSWORD}"
+  export DB_PASSWORD="${DB_PASSWORD:-$PG_PASSWORD}"
+  export M3U_PROXY_TOKEN="${M3U_PROXY_TOKEN:-$PIA_IPTV_PROXY_TOKEN}"
+  export REDIS_PASSWORD="${REDIS_PASSWORD:-$M3U_PROXY_TOKEN}"
+  unset PIA_IPTV_PG_PASSWORD PIA_IPTV_PROXY_TOKEN
+
+  monitor &
+  log INFO "Starting m3u-editor on port ${APP_PORT:-36400}"
+  exec start-container "$@"
+fi
+
+# Gateway only: other containers join this one's network.
+shutdown() {
+  log INFO "Stopping"
+  if [ "$VPN_CLIENT" = "wireguard" ]; then wg-quick down pia > /dev/null 2>&1; else pkill -x openvpn; fi
+  exit 0
+}
+trap shutdown TERM INT
+monitor &
 wait $!

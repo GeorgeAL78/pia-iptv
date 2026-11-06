@@ -1,12 +1,11 @@
-# player -> m3u-editor (Xtream API, :36400) -> pia-iptv (PIA tunnel + kill switch) -> IPTV provider
+# pia-iptv: m3u-editor with a built-in PIA VPN and kill switch, in one container.
 #
-# m3u-editor shares pia-iptv's network, so playlist/EPG syncs and every proxied
-# stream leave through PIA; if the tunnel drops, the kill switch blocks them.
-# In m3u-editor, enable stream proxying on the playlist, otherwise players connect
-# to the source directly instead of through the tunnel.
+# Everything m3u-editor does online (playlist and guide syncs, proxied streams, logos
+# when the logo proxy is on) uses the VPN. If the tunnel drops, that traffic stops
+# instead of falling back to your regular connection.
 #
 # cp .env.example .env, fill it in, then: docker compose up -d
-# Web UI + Xtream server: http://<host>:36400
+# Web UI and Xtream server: http://<docker-host-ip>:36400
 
 name: pia-iptv
 
@@ -21,75 +20,22 @@ services:
       net.ipv6.conf.all.disable_ipv6: "1"
       net.ipv6.conf.default.disable_ipv6: "1"
     environment:
-      PIA_USERNAME: ${PIA_USERNAME}
-      PIA_PASSWORD: ${PIA_PASSWORD}
-      PIA_REGION: ${PIA_REGION:-netherlands}
+      PIA_USERNAME: ${PIA_USERNAME:-}
+      PIA_PASSWORD: ${PIA_PASSWORD:-}
+      PIA_REGION: ${PIA_REGION:-us-newjersey}
       VPN_CLIENT: ${VPN_CLIENT:-wireguard}
-      LAN_PORTS: "36400"
       LAN_NETWORK: ${LAN_NETWORK:-}
-      TZ: ${TZ:-Etc/UTC}
-    ports:
-      - "36400:36400/tcp"   # m3u-editor, published here because it lives in this namespace
-    restart: unless-stopped
-
-  m3u-editor:
-    image: sparkison/m3u-editor:latest
-    container_name: m3u-editor
-    network_mode: service:pia-iptv
-    depends_on:
-      pia-iptv:
-        condition: service_healthy
-    environment:
-      TZ: ${TZ:-Etc/UTC}
       APP_URL: ${APP_URL}
-      APP_PORT: "36400"
       # true = no web login: anyone allowed by LAN_NETWORK gets admin. Xtream logins are unaffected.
       AUTO_LOGIN: ${M3U_AUTO_LOGIN:-false}
-      ENABLE_POSTGRES: "true"
-      PG_DATABASE: m3ue
-      PG_USER: m3ue
-      PG_PASSWORD: ${PG_PASSWORD}
-      PG_PORT: "5432"
-      DB_CONNECTION: pgsql
-      DB_HOST: localhost
-      DB_PORT: "5432"
-      DB_DATABASE: m3ue
-      DB_USERNAME: m3ue
-      DB_PASSWORD: ${PG_PASSWORD}
-      REDIS_ENABLED: "true"
-      REDIS_SERVER_PORT: "36790"
-      REDIS_HOST: localhost
-      REDIS_PASSWORD: ${M3U_PROXY_TOKEN}
-      M3U_PROXY_ENABLED: "true"
-      M3U_PROXY_PORT: "38085"
-      M3U_PROXY_HOST: localhost
-      M3U_PROXY_TOKEN: ${M3U_PROXY_TOKEN}
+      # Optional: generated on first start and kept in ./data if left empty.
+      PG_PASSWORD: ${PG_PASSWORD:-}
+      M3U_PROXY_TOKEN: ${M3U_PROXY_TOKEN:-}
+      TZ: ${TZ:-Etc/UTC}
+    ports:
+      - "36400:36400/tcp"
     volumes:
       - ./data:/var/www/config
       - ./pgdata:/var/lib/postgresql/data
       - ./storage:/var/www/html/storage/app/public
-    restart: unless-stopped
-    healthcheck:
-      # /proc/net/dev is per network namespace: if pia-iptv restarted, this container is
-      # left with only lo, the app still answers on localhost, and only this catches it.
-      test: ["CMD-SHELL", "grep -q eth0 /proc/net/dev && curl -fs http://127.0.0.1:36400/up > /dev/null"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 90s
-    labels:
-      autoheal: "true"
-
-  # Restarts m3u-editor when it goes unhealthy (e.g. orphaned by a pia-iptv restart),
-  # which re-joins it to the gateway's new network namespace.
-  autoheal:
-    image: willfarrell/autoheal:latest
-    container_name: pia-iptv-autoheal
-    network_mode: none
-    environment:
-      AUTOHEAL_CONTAINER_LABEL: autoheal
-      AUTOHEAL_INTERVAL: "10"
-      AUTOHEAL_START_PERIOD: "120"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped

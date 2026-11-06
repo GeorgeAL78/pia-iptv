@@ -7,30 +7,34 @@
   <Privileged>false</Privileged>
   <Support>https://github.com/GeorgeAL78/pia-iptv/issues</Support>
   <Project>https://github.com/GeorgeAL78/pia-iptv</Project>
-  <Overview>PIA VPN gateway for IPTV, with a kill switch.
+  <Overview>m3u-editor with a built-in Private Internet Access VPN and kill switch, in one container.
 
-Other containers (such as m3u-editor) join this container's network and reach the internet only through Private Internet Access. If the tunnel drops, their traffic stops instead of falling back to your regular connection.
+The container connects to PIA first, then starts m3u-editor. Its playlist and guide syncs and the streams it relays use the VPN; if the tunnel drops, that traffic stops instead of falling back to your regular connection.
 
 • WireGuard (default) or OpenVPN, any PIA region
 • Kill switch: IPv4 locked to the tunnel, IPv6 blocked
-• Reconnects in place; re-registers the WireGuard key with server failover
-• Only the ports you list are reachable from your LAN
+• Reconnects in place, with server failover
+• From the LAN, only the web UI / Xtream port is reachable
 
-Install this first, then "m3u-editor (via pia-iptv)". The app's ports are published HERE, because it lives in this container's network.</Overview>
-  <Category>Network:VPN: MediaServer:Video:</Category>
+Open the web UI (default login admin / admin). Players connect with Xtream Codes to http://YOUR-UNRAID-IP:36400. In m3u-editor, enable the Proxy toggle on your playlist so streams go through the VPN.</Overview>
+  <Category>MediaServer:Video: Network:VPN:</Category>
   <WebUI>http://[IP]:[PORT:36400]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/GeorgeAL78/unraid-templates/main/pia-iptv.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/GeorgeAL78/pia-qbittorrent-docker/master/readme/icon.png</Icon>
+  <Icon>https://raw.githubusercontent.com/m3ue/m3u-editor/master/public/favicon.png</Icon>
   <ExtraParams>--restart=unless-stopped --cap-add=NET_ADMIN --device=/dev/net/tun --sysctl net.ipv6.conf.all.disable_ipv6=1 --sysctl net.ipv6.conf.default.disable_ipv6=1</ExtraParams>
   <Requires>A Private Internet Access subscription. /dev/net/tun on the server (check with: ls -l /dev/net/tun).</Requires>
 
-  <Config Name="m3u-editor port" Target="36400" Default="36400" Mode="tcp" Description="Web UI and Xtream server of the app that joins this container (m3u-editor). TiviMate connects here." Type="Port" Display="always" Required="true" Mask="false">36400</Config>
+  <Config Name="Web UI / Xtream port" Target="36400" Default="36400" Mode="tcp" Description="m3u-editor's web UI and Xtream server. Players connect here." Type="Port" Display="always" Required="true" Mask="false">36400</Config>
   <Config Name="PIA username" Target="PIA_USERNAME" Default="" Mode="" Description="Your PIA username (p1234567)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
   <Config Name="PIA password" Target="PIA_PASSWORD" Default="" Mode="" Description="Your PIA password." Type="Variable" Display="always" Required="true" Mask="true"></Config>
-  <Config Name="PIA region" Target="PIA_REGION" Default="us-newjersey|ca|ca_ontario|ca_ontario-so|ca_toronto|ca_vancouver|us-brooklyn|us-salt-lake-city|us-streaming|us-streaming-2|us-tennessee|us3|us_alabama-pf|us_atlanta|us_california|us_chicago|us_denver|us_florida|us_houston|us_las_vegas|us_massachusetts-pf|us_new_york_city|us_seattle|us_silicon_valley|us_south_carolina-pf|us_south_dakota-pf|us_south_west|us_washington_dc|us_wyoming-pf|uk|uk_manchester|nl_amsterdam|de-frankfurt|de_berlin|france|spain|italy|swiss|sweden|ireland|belgium|austria|denmark|no|poland|pt|fi" Mode="" Description="PIA region: US, Canada and major European cities (physical servers). us-newjersey = US East. For other regions, edit the container and type any PIA region id." Type="Variable" Display="always" Required="true" Mask="false">us-newjersey</Config>
+  <Config Name="PIA region" Target="PIA_REGION" Default="us-newjersey|ca|ca_ontario|ca_ontario-so|ca_toronto|ca_vancouver|us-brooklyn|us-salt-lake-city|us-streaming|us-streaming-2|us-tennessee|us3|us_alabama-pf|us_atlanta|us_california|us_chicago|us_denver|us_florida|us_houston|us_las_vegas|us_massachusetts-pf|us_new_york_city|us_seattle|us_silicon_valley|us_south_carolina-pf|us_south_dakota-pf|us_south_west|us_washington_dc|us_wyoming-pf|uk|uk_manchester|nl_amsterdam|de-frankfurt|de_berlin|france|spain|italy|swiss|sweden|ireland|belgium|austria|denmark|no|poland|pt|fi" Mode="" Description="PIA region: US, Canada and major European cities. us-newjersey = US East. For other regions, edit the container and type any PIA region id." Type="Variable" Display="always" Required="true" Mask="false">us-newjersey</Config>
   <Config Name="VPN client" Target="VPN_CLIENT" Default="wireguard|openvpn" Mode="" Description="WireGuard is faster and better for 4K." Type="Variable" Display="always" Required="true" Mask="false">wireguard</Config>
-  <Config Name="LAN network" Target="LAN_NETWORK" Default="" Mode="" Description="Optional: only these LAN ranges may reach the app ports, comma-separated, e.g. 192.168.0.0/24. Empty = any source." Type="Variable" Display="always" Required="false" Mask="false"></Config>
-  <Config Name="LAN ports" Target="LAN_PORTS" Default="36400" Mode="" Description="App ports opened through the kill switch (comma-separated). Keep in step with the port mappings above." Type="Variable" Display="advanced" Required="true" Mask="false">36400</Config>
-  <Config Name="DNS servers" Target="DNS_SERVERS" Default="9.9.9.9,149.112.112.112|1.1.1.1,1.0.0.1|8.8.8.8,8.8.4.4|208.67.222.222,208.67.220.220" Mode="" Description="Resolvers used through the tunnel, shared with containers that join this one. Quad9 | Cloudflare | Google | OpenDNS." Type="Variable" Display="advanced" Required="false" Mask="false">9.9.9.9,149.112.112.112</Config>
+  <Config Name="App URL" Target="APP_URL" Default="" Mode="" Description="How your browser and players reach m3u-editor: http://YOUR-UNRAID-IP:36400 (e.g. http://192.168.0.10:36400)." Type="Variable" Display="always" Required="true" Mask="false"></Config>
+  <Config Name="LAN network" Target="LAN_NETWORK" Default="" Mode="" Description="Optional: only these LAN ranges may reach the web UI / Xtream port, comma-separated, e.g. 192.168.0.0/24. Empty = any source." Type="Variable" Display="always" Required="false" Mask="false"></Config>
+  <Config Name="Skip web login" Target="AUTO_LOGIN" Default="false|true" Mode="" Description="true = open the web UI without signing in. Anyone allowed by LAN network gets full admin. Players' Xtream logins are not affected." Type="Variable" Display="always" Required="false" Mask="false">false</Config>
+  <Config Name="Config" Target="/var/www/config" Default="/mnt/user/appdata/pia-iptv/config" Mode="rw" Description="m3u-editor settings, and the generated internal secrets." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/pia-iptv/config</Config>
+  <Config Name="Database" Target="/var/lib/postgresql/data" Default="/mnt/user/appdata/pia-iptv/pgdata" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/pia-iptv/pgdata</Config>
+  <Config Name="Uploads" Target="/var/www/html/storage/app/public" Default="/mnt/user/appdata/pia-iptv/storage" Mode="rw" Description="Logos and images you upload." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/pia-iptv/storage</Config>
+  <Config Name="DNS servers" Target="DNS_SERVERS" Default="9.9.9.9,149.112.112.112|1.1.1.1,1.0.0.1|8.8.8.8,8.8.4.4|208.67.222.222,208.67.220.220" Mode="" Description="Resolvers used through the tunnel. Quad9 | Cloudflare | Google | OpenDNS." Type="Variable" Display="advanced" Required="false" Mask="false">9.9.9.9,149.112.112.112</Config>
   <Config Name="Legacy iptables" Target="LEGACY_IPTABLES" Default="false|true" Mode="" Description="Only if the firewall fails to build on your kernel." Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
 </Container>

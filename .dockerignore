@@ -1,0 +1,10 @@
+.git
+.github
+.env
+compose.override.yml
+data
+pgdata
+storage
+dockerhub
+unraid
+README.md
