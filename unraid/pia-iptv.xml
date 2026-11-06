@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>pia-iptv</Name>
+  <Repository>gjergjk/pia-iptv:latest</Repository>
+  <Registry>https://hub.docker.com/r/gjergjk/pia-iptv</Registry>
+  <Network>bridge</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/GeorgeAL78/pia-iptv/issues</Support>
+  <Project>https://github.com/GeorgeAL78/pia-iptv</Project>
+  <Overview>PIA VPN gateway for IPTV, with a kill switch.
+
+Other containers (such as m3u-editor) join this container's network and reach the internet only through Private Internet Access. If the tunnel drops, their traffic is blocked instead of leaking your real IP.
+
+• WireGuard (default) or OpenVPN, any PIA region
+• Kill switch: IPv4 locked to the tunnel, IPv6 blocked
+• Reconnects in place; re-registers the WireGuard key with server failover
+• Only the ports you list are reachable from your LAN
+
+Install this first, then "m3u-editor (via pia-iptv)". The app's ports are published HERE, because it lives in this container's network.</Overview>
+  <Category>Network:VPN: MediaServer:Video:</Category>
+  <WebUI>http://[IP]:[PORT:36400]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/GeorgeAL78/unraid-templates/main/pia-iptv.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/GeorgeAL78/pia-qbittorrent-docker/master/readme/icon.png</Icon>
+  <ExtraParams>--restart=unless-stopped --cap-add=NET_ADMIN --device=/dev/net/tun --sysctl net.ipv6.conf.all.disable_ipv6=1 --sysctl net.ipv6.conf.default.disable_ipv6=1</ExtraParams>
+  <Requires>A Private Internet Access subscription. /dev/net/tun on the server (check with: ls -l /dev/net/tun).</Requires>
+
+  <Config Name="m3u-editor port" Target="36400" Default="36400" Mode="tcp" Description="Web UI and Xtream server of the app that joins this container (m3u-editor). TiviMate connects here." Type="Port" Display="always" Required="true" Mask="false">36400</Config>
+  <Config Name="PIA username" Target="PIA_USERNAME" Default="" Mode="" Description="Your PIA username (p1234567)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="PIA password" Target="PIA_PASSWORD" Default="" Mode="" Description="Your PIA password." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="PIA region" Target="PIA_REGION" Default="us_california" Mode="" Description="Region id or name, e.g. us_california, us_west, ca_vancouver, netherlands. Pick one near you or near your IPTV provider." Type="Variable" Display="always" Required="true" Mask="false">us_california</Config>
+  <Config Name="VPN client" Target="VPN_CLIENT" Default="wireguard|openvpn" Mode="" Description="WireGuard is faster and better for 4K." Type="Variable" Display="always" Required="true" Mask="false">wireguard</Config>
+  <Config Name="LAN network" Target="LAN_NETWORK" Default="192.168.1.0/24" Mode="" Description="Only these LAN ranges may reach the app ports (comma-separated). Empty = any source on the container network." Type="Variable" Display="always" Required="false" Mask="false">192.168.1.0/24</Config>
+  <Config Name="LAN ports" Target="LAN_PORTS" Default="36400" Mode="" Description="App ports opened through the kill switch (comma-separated). Keep in step with the port mappings above." Type="Variable" Display="advanced" Required="true" Mask="false">36400</Config>
+  <Config Name="DNS servers" Target="DNS_SERVERS" Default="9.9.9.9,149.112.112.112" Mode="" Description="Resolvers used through the tunnel, shared with containers that join this one." Type="Variable" Display="advanced" Required="false" Mask="false">9.9.9.9,149.112.112.112</Config>
+  <Config Name="Timezone" Target="TZ" Default="America/Los_Angeles" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">America/Los_Angeles</Config>
+</Container>

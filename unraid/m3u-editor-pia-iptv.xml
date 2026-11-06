@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>m3u-editor</Name>
+  <Repository>sparkison/m3u-editor:latest</Repository>
+  <Registry>https://hub.docker.com/r/sparkison/m3u-editor</Registry>
+  <Network>none</Network>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/m3ue/m3u-editor</Support>
+  <Project>https://github.com/m3ue/m3u-editor</Project>
+  <Overview>m3u-editor (by sparkison), preconfigured to run inside the pia-iptv VPN container's network.
+
+All playlist and EPG syncs and all proxied streams go through PIA. TiviMate logs in with Xtream Codes at http://UNRAID-IP:36400 using a playlist's own username/password.
+
+IMPORTANT
+• Install and start pia-iptv first. Its name must be exactly "pia-iptv".
+• Network Type stays "None"; the network comes from --net=container:pia-iptv in Extra Parameters.
+• The port is published on pia-iptv, not here.
+• In m3u-editor, enable stream proxying for your playlist, or TiviMate plays streams directly from the provider, outside the VPN.
+• If pia-iptv is updated or recreated, update or restart this container too. Add the "autoheal" container (willfarrell/autoheal) to restart it automatically.</Overview>
+  <Category>MediaServer:Video: Tools:</Category>
+  <WebUI>http://[IP]:36400/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/GeorgeAL78/unraid-templates/main/m3u-editor-pia-iptv.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/m3ue/m3u-editor/master/public/favicon.png</Icon>
+  <ExtraParams>--net=container:pia-iptv --restart=unless-stopped --label autoheal=true --health-cmd "grep -q eth0 /proc/net/dev &amp;&amp; curl -fs http://127.0.0.1:36400/up &gt; /dev/null" --health-interval 30s --health-retries 3 --health-start-period 90s</ExtraParams>
+  <Requires>The pia-iptv container, running.</Requires>
+
+  <Config Name="App URL" Target="APP_URL" Default="http://192.168.1.200:36400" Mode="" Description="How your browser and TiviMate reach m3u-editor." Type="Variable" Display="always" Required="true" Mask="false">http://192.168.1.200:36400</Config>
+  <Config Name="Config" Target="/var/www/config" Default="/mnt/user/appdata/m3u-editor/config" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/m3u-editor/config</Config>
+  <Config Name="Postgres data" Target="/var/lib/postgresql/data" Default="/mnt/user/appdata/m3u-editor/pgdata" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/m3u-editor/pgdata</Config>
+  <Config Name="Uploads" Target="/var/www/html/storage/app/public" Default="/mnt/user/appdata/m3u-editor/storage" Mode="rw" Description="Logos and images you upload." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/m3u-editor/storage</Config>
+  <Config Name="Postgres password" Target="PG_PASSWORD" Default="" Mode="" Description="Choose a strong password. Set once; keep it the same afterwards." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Postgres password (app)" Target="DB_PASSWORD" Default="" Mode="" Description="Same value as Postgres password." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Proxy token" Target="M3U_PROXY_TOKEN" Default="" Mode="" Description="Any long random string (e.g. openssl rand -hex 32)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Redis password" Target="REDIS_PASSWORD" Default="" Mode="" Description="Same value as Proxy token." Type="Variable" Display="always" Required="true" Mask="true"></Config>
+  <Config Name="Timezone" Target="TZ" Default="America/Los_Angeles" Mode="" Description="" Type="Variable" Display="advanced" Required="false" Mask="false">America/Los_Angeles</Config>
+  <Config Name="APP_PORT" Target="APP_PORT" Default="36400" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">36400</Config>
+  <Config Name="ENABLE_POSTGRES" Target="ENABLE_POSTGRES" Default="true" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">true</Config>
+  <Config Name="PG_DATABASE" Target="PG_DATABASE" Default="m3ue" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">m3ue</Config>
+  <Config Name="PG_USER" Target="PG_USER" Default="m3ue" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">m3ue</Config>
+  <Config Name="PG_PORT" Target="PG_PORT" Default="5432" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">5432</Config>
+  <Config Name="DB_CONNECTION" Target="DB_CONNECTION" Default="pgsql" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">pgsql</Config>
+  <Config Name="DB_HOST" Target="DB_HOST" Default="localhost" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">localhost</Config>
+  <Config Name="DB_PORT" Target="DB_PORT" Default="5432" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">5432</Config>
+  <Config Name="DB_DATABASE" Target="DB_DATABASE" Default="m3ue" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">m3ue</Config>
+  <Config Name="DB_USERNAME" Target="DB_USERNAME" Default="m3ue" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">m3ue</Config>
+  <Config Name="REDIS_ENABLED" Target="REDIS_ENABLED" Default="true" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">true</Config>
+  <Config Name="REDIS_SERVER_PORT" Target="REDIS_SERVER_PORT" Default="36790" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">36790</Config>
+  <Config Name="REDIS_HOST" Target="REDIS_HOST" Default="localhost" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">localhost</Config>
+  <Config Name="M3U_PROXY_ENABLED" Target="M3U_PROXY_ENABLED" Default="true" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">true</Config>
+  <Config Name="M3U_PROXY_PORT" Target="M3U_PROXY_PORT" Default="38085" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">38085</Config>
+  <Config Name="M3U_PROXY_HOST" Target="M3U_PROXY_HOST" Default="localhost" Mode="" Description="" Type="Variable" Display="advanced" Required="true" Mask="false">localhost</Config>
+</Container>

@@ -1,0 +1,5 @@
+.env
+compose.override.yml
+data/
+pgdata/
+storage/
