@@ -5,9 +5,15 @@
 A Private Internet Access (PIA) VPN gateway container with a kill switch. Other containers join
 its network and reach the internet only through PIA.
 
-It's made for IPTV proxies such as [m3u-editor](https://github.com/m3ue/m3u-editor). The proxy
+The included Compose file and Unraid templates set it up with
+[m3u-editor](https://github.com/m3ue/m3u-editor), an IPTV playlist manager and proxy. m3u-editor
 runs inside pia-iptv's network, so its playlist and guide syncs and the streams it relays use the
-VPN. Players connect to the proxy over your LAN.
+VPN, and players connect to it over your LAN.
+
+You can put a different app behind pia-iptv instead, or alongside it, such as
+[iptv-proxy](https://github.com/pierre-emmanuelJ/iptv-proxy) or
+[Threadfin](https://github.com/Threadfin/Threadfin): run it with
+`network_mode: service:pia-iptv`, add its port to `LAN_PORTS` and publish that port on pia-iptv.
 
 ```
 player ──LAN──▶ :36400 ─┐
@@ -15,8 +21,6 @@ player ──LAN──▶ :36400 ─┐
                         ▼
               pia-iptv: WireGuard/OpenVPN + kill switch ──PIA──▶ IPTV provider
 ```
-
-Any app can sit behind it the same way. Open its ports with `LAN_PORTS`.
 
 ## Features
 
