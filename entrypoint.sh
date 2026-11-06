@@ -292,6 +292,13 @@ pub=$(curl -s --max-time 10 https://ipinfo.io/ip 2>/dev/null)
 log INFO "Tunnel up on $VPN_DEVICE - public IP ${pub:-unknown (lookup failed)}"
 touch /run/pia-iptv.ready
 
+# One-line VPN summary. Printed again once the app is up (so it is in the last lines
+# of the log, which is all Unraid's log window shows) and after every reconnect.
+vpn_status() {
+  st_ip=$(curl -s --max-time 10 https://ipinfo.io/ip 2>/dev/null)
+  log INFO "VPN up: ${region_name}${WG_CN:+ ($WG_CN)}, $VPN_CLIENT, exit IP ${st_ip:-unknown}${1:+ - $1}"
+}
+
 ############################################
 # Monitor loop (same cadence and budget as pia-qbittorrent)
 ############################################
@@ -316,7 +323,7 @@ while :; do
     i=1
     if ! tunnel_alive; then
       if reconnect_vpn; then
-        fail=0; log INFO "Reconnected - tunnel is back up"
+        fail=0; log INFO "Reconnected - tunnel is back up"; vpn_status "after reconnect"
       else
         fail=$((fail + 1))
         if [ "$fail" -ge "$RECONNECT_MAX_FAILURES" ]; then
@@ -360,6 +367,16 @@ if command -v start-container > /dev/null 2>&1; then
   unset PIA_IPTV_PG_PASSWORD PIA_IPTV_PROXY_TOKEN
 
   monitor &
+  # Repeat the VPN summary once m3u-editor answers, after its long startup output.
+  (
+    n=0
+    while [ $n -lt 120 ]; do
+      curl -fs --max-time 5 "http://127.0.0.1:${APP_PORT:-36400}/up" > /dev/null 2>&1 && break
+      sleep 5; n=$((n + 1))
+    done
+    sleep 5
+    vpn_status "m3u-editor ready on port ${APP_PORT:-36400}"
+  ) &
   log INFO "Starting m3u-editor on port ${APP_PORT:-36400}"
   exec start-container "$@"
 fi

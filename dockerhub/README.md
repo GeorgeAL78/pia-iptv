@@ -48,7 +48,7 @@ cp .env.example .env    # fill in your PIA login, region and APP_URL
 docker compose up -d
 ```
 
-Open `APP_URL` (by default `http://<docker-host-ip>:36400`). m3u-editor's default login is
+Open `http://<docker-host-ip>:36400`. m3u-editor's default login is
 `admin` / `admin`; change it.
 
 Instead of `PIA_USERNAME`/`PIA_PASSWORD` you can mount a file as `/auth.conf:ro`, with the
@@ -58,7 +58,8 @@ username on line 1 and the password on line 2.
 
 Install **pia-iptv** from the template in [`unraid/`](https://github.com/GeorgeAL78/pia-iptv/tree/main/unraid) or in
 [GeorgeAL78/unraid-templates](https://github.com/GeorgeAL78/unraid-templates). Fill in your PIA
-login, pick a region, set *App URL* to `http://<your-unraid-ip>:36400`, and start it.
+login, pick a region, set *App URL* to `http://<your-unraid-ip>` (without the port), and start it.
+Both bridge and a custom network such as br0 work; on br0, use the container's own IP.
 
 ## Setting up your player
 
@@ -98,7 +99,7 @@ m3u-editor:
 
 | Variable | Default | |
 |---|---|---|
-| `APP_URL` | | How browsers and players reach it, e.g. `http://192.168.0.10:36400` |
+| `APP_URL` | | How browsers and players reach it, without the port: e.g. `http://192.168.0.10`. m3u-editor adds `APP_PORT` itself |
 | `APP_PORT` | `36400` | Web UI and Xtream port |
 | `AUTO_LOGIN` | `false` | `true` opens the web UI without signing in. Anyone allowed by `LAN_NETWORK` gets admin |
 | `PG_PASSWORD`, `M3U_PROXY_TOKEN` | generated | Internal secrets. Generated on first start and kept in `/var/www/config` |
