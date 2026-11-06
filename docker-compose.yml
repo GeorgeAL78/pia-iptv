@@ -1,9 +1,9 @@
-# TiviMate -> m3u-editor (Xtream API, :36400) -> pia-iptv (PIA tunnel + kill switch) -> provider
+# player -> m3u-editor (Xtream API, :36400) -> pia-iptv (PIA tunnel + kill switch) -> IPTV provider
 #
 # m3u-editor shares pia-iptv's network, so playlist/EPG syncs and every proxied
 # stream leave through PIA; if the tunnel drops, the kill switch blocks them.
-# In m3u-editor, enable stream proxying on the playlist, otherwise TiviMate is given
-# the provider's direct URLs and plays outside the tunnel.
+# In m3u-editor, enable stream proxying on the playlist, otherwise players are given
+# the provider's direct URLs and stream outside the tunnel.
 #
 # cp .env.example .env, fill it in, then: docker compose up -d
 # Web UI + Xtream server: http://<host>:36400
