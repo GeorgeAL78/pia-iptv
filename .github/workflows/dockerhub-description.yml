@@ -1,0 +1,28 @@
+name: Update Docker Hub description
+
+# Separate from the image build, so editing the description never needs a release.
+on:
+  push:
+    branches: [main]
+    paths: [dockerhub/README.md]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  description:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # Docker Hub accepts a description update only from a password or an access
+      # token with admin scope (Read, Write, Delete).
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: gjergjk/pia-iptv
+          short-description: "PIA VPN gateway (WireGuard/OpenVPN) with kill switch, for routing m3u-editor/IPTV through PIA"
+          readme-filepath: ./dockerhub/README.md
