@@ -17,7 +17,7 @@ The container connects to PIA first, then starts m3u-editor. Its playlist and gu
 • From the LAN, only the web UI / Xtream port is reachable
 
 Open the web UI (default login admin / admin). Players connect with Xtream Codes to http://YOUR-UNRAID-IP:36400. In m3u-editor, enable the Proxy toggle on your playlist so streams go through the VPN.</Overview>
-  <Category>MediaServer:Video: Network:VPN:</Category>
+  <Category>MediaServer:Video Network:VPN</Category>
   <WebUI>http://[IP]:[PORT:36400]/</WebUI>
   <TemplateURL>https://raw.githubusercontent.com/GeorgeAL78/unraid-templates/main/pia-iptv.xml</TemplateURL>
   <Icon>https://raw.githubusercontent.com/m3ue/m3u-editor/master/public/favicon.png</Icon>
