@@ -2,7 +2,7 @@
 # The VPN comes up first; m3u-editor then starts exactly as in its own image.
 # Pinned m3u-editor release; .github/workflows/auto-release.yml bumps it when m3u-editor
 # publishes a new stable release, and releases a new pia-iptv version.
-ARG M3U_EDITOR_TAG=0.14.1
+ARG M3U_EDITOR_TAG=0.14.2
 FROM sparkison/m3u-editor:${M3U_EDITOR_TAG}
 ARG M3U_EDITOR_TAG
 
