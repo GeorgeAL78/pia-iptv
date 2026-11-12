@@ -23,6 +23,10 @@ Open the web UI (default login admin / admin). Players connect with Xtream Codes
   <Icon>https://raw.githubusercontent.com/m3ue/m3u-editor/master/public/favicon.png</Icon>
   <ExtraParams>--restart=unless-stopped --cap-add=NET_ADMIN --device=/dev/net/tun --sysctl net.ipv6.conf.all.disable_ipv6=1 --sysctl net.ipv6.conf.default.disable_ipv6=1</ExtraParams>
   <Requires>A Private Internet Access subscription. /dev/net/tun on the server (check with: ls -l /dev/net/tun).</Requires>
+  <Screenshot>https://raw.githubusercontent.com/m3ue/m3u-editor/8ee4e6714a95cc43fd3034e580aa428ca42c9632/screenshots/v0.13.4/m3ue-home.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/m3ue/m3u-editor/8ee4e6714a95cc43fd3034e580aa428ca42c9632/screenshots/v0.13.4/m3ue-output-options.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/m3ue/m3u-editor/8ee4e6714a95cc43fd3034e580aa428ca42c9632/screenshots/v0.13.4/m3ue-servers.png</Screenshot>
+  <Screenshot>https://raw.githubusercontent.com/m3ue/m3u-editor/8ee4e6714a95cc43fd3034e580aa428ca42c9632/screenshots/v0.13.4/m3ue-api.png</Screenshot>
 
   <Config Name="Web UI / Xtream port" Target="36400" Default="36400" Mode="tcp" Description="m3u-editor's web UI and Xtream server. Players connect here." Type="Port" Display="always" Required="true" Mask="false">36400</Config>
   <Config Name="PIA username" Target="PIA_USERNAME" Default="" Mode="" Description="Your PIA username (p1234567)." Type="Variable" Display="always" Required="true" Mask="true"></Config>
